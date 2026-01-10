@@ -36,7 +36,7 @@ public class BiometricCordova extends CordovaPlugin {
           return false;
       }
 
-      currentCallbackContext= callbackContext
+      currentCallbackContext= callbackContext;
 
       String LeftFinger;
       String RightFinger;
