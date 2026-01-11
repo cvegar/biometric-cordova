@@ -58,10 +58,11 @@ public class ScanActionCryptoActivity extends Activity {
 
         setContentView(R.layout.activity_scan);
 
-        Intent intent = getIntent();
-        instructions = intent.getStringExtra("file");
+        //Intent intent = getIntent();
+        //instructions = intent.getStringExtra("file");
 
-        instructions = instructions.substring(2, instructions.length() - 2);
+        instructions = "1";
+        //instructions.substring(2, instructions.length() - 2);
 
         fingerprintBrand = null;
         bioversion=Utils.fnVersion(this);
