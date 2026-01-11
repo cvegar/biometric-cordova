@@ -1,36 +1,31 @@
-function BiometricCordova() {}
+var exec = require("cordova/exec");
 
-/**
- * scanCrypto(rightFingerCode, leftFingerCode, op, successCallback, errorCallback)
- *
- * rightFingerCode: "02", "2", etc.
- * leftFingerCode : "07", "7", etc.
- * op: boolean (en tu Activity, cuando op=false lee hright/hleft)
- */
-BiometricCordova.prototype.scanCrypto = function (rightFingerCode, leftFingerCode, successCallback, errorCallback) {
+function asBracketArrayString(value) {
+  if (value === null || value === undefined) return '[""]';
+  var s = String(value).trim().replace(/"/g, '\\"');
+  // tu nativo hace replace de [,],"
+  return '["' + s + '"]';
+}
 
-  var options = {
-    // OJO: tu ScanActionCryptoActivity espera strings con formato ["02"] etc.
-    hright: '["' + String(rightFingerCode) + '"]',
-    hleft:  '["' + String(leftFingerCode) + '"]',
-    // op: (op === true)
-    // file eliminado a propósito
-  };
+var BiometricCordova = {
+  // Firma EXACTA a como lo llamas en OutSystems:
+  // scanCrypto("01","07", successCb, errorCb)
+  scanCrypto: function (rightFingerCode, leftFingerCode, successCallback, errorCallback) {
+    var options = {
+      hright: asBracketArrayString(rightFingerCode),
+      hleft: asBracketArrayString(leftFingerCode)
+      // file eliminado
+      // op eliminado
+    };
 
-  cordova.exec(successCallback, errorCallback, "BiometricCordova", "scanCrypto", [options]);
+    exec(successCallback, errorCallback, "BiometricCordova", "scanCrypto", [options]);
+  }
 };
 
-// Instalación en window.plugins
-BiometricCordova.install = function () {
+module.exports = BiometricCordova;
+
+// opcional: alias window.plugins por si tu app lo busca así
+document.addEventListener("deviceready", function () {
   window.plugins = window.plugins || {};
-  window.plugins.BiometricCordova = new BiometricCordova();
-
-  // Alias opcional por compatibilidad si antes llamabas a EntelBiometricPlugin
-  window.plugins.EntelBiometricPlugin = window.plugins.BiometricCordova;
-
-  return window.plugins.BiometricCordova;
-};
-
-cordova.addConstructor(BiometricCordova.install);
-
-module.exports = new BiometricCordova();
+  window.plugins.BiometricCordova = BiometricCordova;
+}, false);
