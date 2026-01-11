@@ -52,43 +52,61 @@ public class ScanActionCryptoActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        sgfplib = new JSGFPLib((UsbManager) getSystemService(Context.USB_SERVICE));
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+    super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_scan);
+    this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+    setContentView(R.layout.activity_scan);
 
-        //Intent intent = getIntent();
-        //instructions = intent.getStringExtra("file");
+    instructions = "1";
+    fingerprintBrand = null;
+    bioversion = Utils.fnVersion(this);
 
-        instructions = "1";
-        //instructions.substring(2, instructions.length() - 2);
+    Intent intent = getIntent();
+    Bundle extras = (intent != null) ? intent.getExtras() : null;
 
-        fingerprintBrand = null;
-        bioversion=Utils.fnVersion(this);
-
-        if (!getIntent().getBooleanExtra("op", false)) {
-            //called from oustystems from callactivity
-            hright = getIntent().getExtras().getString("hright").replace("[", "")
-                    .replace("]", "").replace("\"", "");
-            hleft = getIntent().getExtras().getString("hleft").replace("[", "")
-                    .replace("]", "").replace("\"", "");
-
-            Log.d(TAG, "ded: " + hright + hleft);
+    // LOG: ver qué está llegando
+    if (extras == null) {
+        Log.e(TAG, "Extras is NULL. Intent=" + intent);
+    } else {
+        for (String k : extras.keySet()) {
+            Log.d(TAG, "EXTRA " + k + " = " + extras.get(k));
         }
-
-        Log.v("XXX", instructions);
-        /*
-        long error = sgfplib.Init(SGFDxDeviceName.SG_DEV_AUTO);
-
-        if (error == SGFDxErrorCode.SGFDX_ERROR_NONE) {
-            initalizeSecugen();
-        } else {
-            initializeMorpho();
-        }
-        */
-        initializeEikon();
     }
+
+    boolean op = (intent != null) && intent.getBooleanExtra("op", false);
+    Log.d(TAG, "op=" + op);
+
+    if (!op) {
+        String rawRight = (extras != null) ? extras.getString("hright") : null;
+        String rawLeft  = (extras != null) ? extras.getString("hleft")  : null;
+
+        // Fallback por si Cordova los puso como StringExtra
+        if (rawRight == null && intent != null) rawRight = intent.getStringExtra("hright");
+        if (rawLeft  == null && intent != null) rawLeft  = intent.getStringExtra("hleft");
+
+        if (rawRight == null || rawLeft == null) {
+            Log.e(TAG, "Missing hright/hleft. rawRight=" + rawRight + " rawLeft=" + rawLeft);
+
+            // Evita crash: retorna cancelado (si tu plugin maneja onActivityResult)
+            Intent data = new Intent();
+            data.putExtra("error", "Missing hright/hleft extras");
+            setResult(RESULT_CANCELED, data);
+            finish();
+            return;
+        }
+
+        hright = clean(rawRight);
+        hleft  = clean(rawLeft);
+        Log.d(TAG, "ded: " + hright + " " + hleft);
+    }
+
+    initializeEikon();
+}
+
+private String clean(String s) {
+    if (s == null) return "";
+    return s.replace("[", "").replace("]", "").replace("\"", "").trim();
+}
 
 
     private void initializeMorpho() {
