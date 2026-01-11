@@ -37,7 +37,7 @@ public class BiometricCordova extends CordovaPlugin {
             // Valores “limpios” (los normalizamos para ScanActionCryptoActivity)
             String hright = optFirstNonEmpty(options, "hright", "rightFingerCode", "right_finger");
             String hleft  = optFirstNonEmpty(options, "hleft", "leftFingerCode", "left_finger");
-
+            boolean op = options.optBoolean("op", false);
 
             Context appCtx = cordova.getActivity().getApplicationContext();
             Intent intent = new Intent(appCtx, ScanActionCryptoActivity.class);
