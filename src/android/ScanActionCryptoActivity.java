@@ -27,6 +27,8 @@ import com.zytrust.android.lib.bio.morpho.ui.ZyResponse;
 import SecuGen.FDxSDKPro.JSGFPLib;
 import SecuGen.FDxSDKPro.SGFDxDeviceName;
 import SecuGen.FDxSDKPro.SGFDxErrorCode;
+import android.os.Build;
+import android.content.Context;
 //import biometric.entel.R;
 import biometric.entel.util.Globals;
 import biometric.entel.util.Utils;
@@ -228,7 +230,11 @@ private String clean(String s) {
                                 mPermissionIntent = PendingIntent.getBroadcast(applContext, 0, new Intent(ACTION_USB_PERMISSION), 0);
                             }
                             IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-                            applContext.registerReceiver(mUsbReceiver, filter);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                applContext.registerReceiver(mUsbReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                            } else {
+                                applContext.registerReceiver(mUsbReceiver, filter);
+                            }
 
                             if (DPFPDDUsbHost.DPFPDDUsbCheckAndRequestPermissions(applContext, mPermissionIntent, m_deviceName)) {
                                 //CheckDevice();
