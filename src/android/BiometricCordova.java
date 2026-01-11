@@ -15,7 +15,7 @@ import org.json.JSONObject;
 
 import biometric.entel.ScanActionCryptoActivity;
 
-public class EntelFingerPlugin extends CordovaPlugin {
+public class BiometricCordova extends CordovaPlugin {
 
  private static final String TAG = "EntelBiometricPlugin-Cordova";
     private static final int REQ_SCAN_CRYPTO = 11001;
