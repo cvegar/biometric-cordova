@@ -15,7 +15,7 @@ import org.json.JSONObject;
 
 import biometric.entel.ScanActionCryptoActivity;
 
-public class BiometricCordova extends CordovaPlugin {
+public class EntelFingerPlugin extends CordovaPlugin {
 
  private static final String TAG = "EntelBiometricPlugin-Cordova";
     private static final int REQ_SCAN_CRYPTO = 11001;
@@ -35,28 +35,17 @@ public class BiometricCordova extends CordovaPlugin {
             JSONObject options = (args != null && args.length() > 0) ? args.getJSONObject(0) : new JSONObject();
 
             // Valores “limpios” (los normalizamos para ScanActionCryptoActivity)
-            String instructions = optFirstNonEmpty(options, "instructions", "file");
             String hright = optFirstNonEmpty(options, "hright", "rightFingerCode", "right_finger");
             String hleft  = optFirstNonEmpty(options, "hleft", "leftFingerCode", "left_finger");
-            boolean op = options.optBoolean("op", false);
 
-            if (isNullOrEmpty(instructions)) {
-                callbackContext.error("Missing parameter: instructions (or file).");
-                return true;
-            }
-
-            if (!op && (isNullOrEmpty(hright) || isNullOrEmpty(hleft))) {
-                callbackContext.error("Missing parameters: hright and hleft are required when op=false.");
-                return true;
-            }
 
             Context appCtx = cordova.getActivity().getApplicationContext();
             Intent intent = new Intent(appCtx, ScanActionCryptoActivity.class);
 
             // IMPORTANT: ScanActionCryptoActivity hace substring(2, len-2) sobre "file"
             // Así que lo enviamos como ["valor"] para que sea seguro.
-            intent.putExtra("file", normalizeToBracketedString(instructions));
-            intent.putExtra("op", op);
+            //intent.putExtra("file", normalizeToBracketedString(instructions));
+            
 
             if (!op) {
                 intent.putExtra("hright", normalizeToBracketedString(hright));
