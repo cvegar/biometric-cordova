@@ -1,69 +1,45 @@
+var exec = require('cordova/exec');
+
+function asBracketArrayString(value) {
+  // La Activity hace substring(2, len-2), así que necesita ["..."]
+  // Si ya viene con ["..."], lo dejamos igual.
+  if (value === null || value === undefined) return '[""]';
+
+  var s = String(value).trim();
+  if (s.startsWith('["') && s.endsWith('"]')) return s;
+
+  // escapamos comillas dobles dentro del string, por seguridad
+  s = s.replace(/"/g, '\\"');
+  return '["' + s + '"]';
+}
+
 var BiometricCordova = {
-    // Lanza el escaneo criptográfico
-    launchScanCrypto: function(successCallback, errorCallback) {
-        cordova.exec(
-            successCallback,
-            errorCallback,
-            'BiometricCordova', // Nombre del plugin (debe coincidir con config.xml)
-            'launchScanCrypto',
-            [] // Sin parámetros
-        );
-    },
+  /**
+   * scanCrypto(rightFingerCode, leftFingerCode, instructions, op, success, error)
+   *
+   * rightFingerCode: "02"
+   * leftFingerCode : "07"
+   * instructions   : "1" o "eikon" (lo que uses en tu flujo nativo)
+   * op             : false (recomendado para OutSystems)
+   */
+  scanCrypto: function (rightFingerCode, leftFingerCode, instructions, op, success, error) {
+    var options = {
+      file: asBracketArrayString(instructions),
+      hright: asBracketArrayString(rightFingerCode),
+      hleft: asBracketArrayString(leftFingerCode),
+      op: !!op
+    };
 
-    captureFingerprint: function(instructions, rightFinger, leftFinger, successCallback, errorCallback) {
-        cordova.exec(
-            function(result) {
-                // Procesamiento estándar del resultado
-                if (typeof result === 'string') {
-                    try {
-                        result = JSON.parse(result); // Para casos donde Cordova serializa el JSON
-                    } catch (e) {
-                        errorCallback("Formato de respuesta inválido");
-                        return;
-                    }
-                }
-                
-                // Validación de estructura
-                if (result && typeof result.success !== 'undefined') {
-                    successCallback(result);
-                } else {
-                    errorCallback("Respuesta inesperada del plugin");
-                }
-            },
-            errorCallback,
-            'biometric-entel', // Nombre del plugin (debe coincidir con config.xml)
-            'captureFingerprint',
-            [
-                instructions || "Coloca tu dedo en el lector",
-                rightFinger || "thumb_right",
-                leftFinger || "index_left"
-            ]
-        );
-    },
-
-    /**
-     * Versión con Promesas (opcional)
-     */
-    captureFingerprintPromise: function(instructions, rightFinger, leftFinger) {
-        return new Promise((resolve, reject) => {
-            this.captureFingerprint(
-                instructions,
-                rightFinger,
-                leftFinger,
-                resolve,
-                reject
-            );
-        });
-    }
+    // OJO: service debe coincidir con <feature name="BiometricCordova">
+    exec(success, error, 'BiometricCordova', 'scanCrypto', [options]);
+  }
 };
 
-// Registro automático en window.plugins si Cordova está disponible
-if (typeof window !== 'undefined' && window.cordova) {
-    if (!window.plugins) window.plugins = {};
-    window.plugins.BiometricCordova = BiometricCordova;
-}
+// Export principal (lo que Cordova clobberá a cordova.plugins.BiometricCordova)
+module.exports = BiometricCordova;
 
-// Exportación para módulos (CommonJS/ES6)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = BiometricCordova;
-}
+// Alias opcional para que también funcione window.plugins.BiometricCordova
+document.addEventListener('deviceready', function () {
+  window.plugins = window.plugins || {};
+  window.plugins.BiometricCordova = BiometricCordova;
+}, false);
